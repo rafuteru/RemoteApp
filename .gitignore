@@ -1,10 +1,23 @@
+# Gradle
+.gradle/
+build/
+
+# Kotlin
+.kotlin/
+
+# Android Studio
+.idea/
 *.iml
-.gradle
-.idea
+captures/
+.externalNativeBuild/
+.cxx/
+
+# macOS
 .DS_Store
-build
-captures
-.externalNativeBuild
-.cxx
+
+# Local config
 local.properties
-xcuserdata
+
+# Xcode (KMM iOS)
+xcuserdata/
+DerivedData/

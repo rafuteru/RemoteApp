@@ -1,0 +1,30 @@
+CREATE TABLE room (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    room_key TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL
+);
+
+-- Insert
+insertRoom:
+INSERT INTO room(room_key, name)
+VALUES (?, ?);
+
+-- Get all
+selectAllRooms:
+SELECT * FROM room;
+
+-- Get by id
+selectRoomById:
+SELECT * FROM room WHERE id = ?;
+
+-- Update
+updateRoom:
+UPDATE room
+SET name = ?
+WHERE id = ?;
+
+-- Delete
+deleteRoom:
+DELETE FROM room WHERE id = ?;
+
+

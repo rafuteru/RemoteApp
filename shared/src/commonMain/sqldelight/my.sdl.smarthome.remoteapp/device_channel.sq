@@ -1,0 +1,22 @@
+CREATE TABLE device_channel (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id INTEGER NOT NULL,
+    channel_index INTEGER NOT NULL,
+    FOREIGN KEY(device_id) REFERENCES device(id) ON DELETE CASCADE,
+    UNIQUE(device_id, channel_index)
+);
+
+-- Insert
+insertChannel:
+INSERT INTO device_channel(device_id, channel_index)
+VALUES (?, ?);
+
+-- Get by device
+selectChannelsByDevice:
+SELECT * FROM device_channel
+WHERE device_id = ?;
+
+-- Delete by device
+deleteChannelsByDevice:
+DELETE FROM device_channel
+WHERE device_id = ?;

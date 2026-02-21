@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -25,7 +27,23 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            //put your multiplatform dependencies here
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kermit)
+            implementation(libs.coroutines.core)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
+            implementation(libs.koin.core)
+        }
+        androidMain.dependencies {
+            implementation(libs.aws.mobile.client)
+            implementation(libs.aws.iot)
+            implementation(libs.localbroadcastmanager)
+            implementation(libs.sqldelight.android.driver)
+            implementation(libs.koin.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.sqldelight.ios.driver)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -42,5 +60,13 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("my.sdl.smarthome.remoteapp")
+        }
     }
 }
