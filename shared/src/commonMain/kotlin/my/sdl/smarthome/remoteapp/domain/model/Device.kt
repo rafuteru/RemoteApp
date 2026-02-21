@@ -9,8 +9,8 @@ data class Device(
     val type: SupportDeviceType,
     val switchId: String,
     val channelCount: Int,
-    val qos: Int,
-    val isRetain: Boolean
+    val qos: Int = 0,
+    val isRetain: Boolean = false
 )
 
 //fun Device.toDomain(): DeviceModel {

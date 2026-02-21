@@ -1,23 +1,32 @@
 package my.sdl.smarthome.remoteapp.core
 import android.content.Context
-import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.amazonaws.auth.CognitoCachingCredentialsProvider
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttClientStatusCallback
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.regions.Regions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import my.sdl.smarthome.remoteapp.constants.AppConstants
 import my.sdl.smarthome.remoteapp.core.mqtt.AwsConnection
+import my.sdl.smarthome.remoteapp.core.mqtt.ConnectionStatus
+import my.sdl.smarthome.remoteapp.core.mqtt.MqttEvent
 import my.sdl.smarthome.remoteapp.core.mqtt.PingManager
 import my.sdl.smarthome.remoteapp.data.db.DeviceStorageAndroid
 import my.sdl.smarthome.remoteapp.data.db.storage.RuntimeStorage
 import my.sdl.smarthome.remoteapp.data.db.storage.getAwsId
 import my.sdl.smarthome.remoteapp.data.db.storage.getPubTopic
 import my.sdl.smarthome.remoteapp.data.db.storage.getSubTopic
+import my.sdl.smarthome.remoteapp.utils.AppLog
 
-class AwsConnectionManagerAndroid(context: Context) : AwsConnection {
-
+class AwsConnectionManagerAndroid(
+    context: Context,
+) : AwsConnection {
+    private val _events = MutableSharedFlow<MqttEvent>()      // Internal events
+    override val events: SharedFlow<MqttEvent> get() = _events
     private val appContext = context.applicationContext
     private val deviceStorageAndroid = DeviceStorageAndroid(appContext)
     private val credentialsProvider: CognitoCachingCredentialsProvider by lazy {
@@ -39,8 +48,13 @@ class AwsConnectionManagerAndroid(context: Context) : AwsConnection {
     }
     override var isConnected: Boolean = false
 
+    init {
+        connectRemote()
+    }
     override fun publishData(topic: String, message: String) {
         if (!isConnected || message.isEmpty()) return
+        AppLog.logger.d(tag = TAG) { "topic : $topic and message : $message" }
+        // Todo: Check if its required, I think its for maintain state
 //        BasicSharedPref.setMapValue(
 //            AppConstants.SUBSCRIPTION_PREFIX + AppConstants.SLASH + topic,
 //            message
@@ -64,41 +78,25 @@ class AwsConnectionManagerAndroid(context: Context) : AwsConnection {
                         pingManager.startPinging(15000)
                         isConnected = true
                         subscribeToTopic(deviceStorageAndroid.getSubTopic())
-                        sendBroadCast(
-                            AppConstants.Action.ACTION_MQTT_STATUS,
-                            AppConstants.IntentConstant.PARAM_STATUS,
-                            AppConstants.ConnectionStatus.STATUS_CONNECTED
-                        )
+                        postEvent(MqttEvent.StatusChanged(ConnectionStatus.CONNECTED))
                         publishData(AppConstants.DefinedTopics.SYNC_STATUS_REQ, AppConstants.DefinedTopics.SYNC_STATUS_REQ)
                     }
 
                     AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Reconnecting, AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Connecting -> {
                         pingManager.stopPinging()
                         isConnected = false
-                        sendBroadCast(
-                            AppConstants.Action.ACTION_MQTT_STATUS,
-                            AppConstants.IntentConstant.PARAM_STATUS,
-                            AppConstants.ConnectionStatus.STATUS_CONNECTING
-                        )
+                        postEvent(MqttEvent.StatusChanged(ConnectionStatus.CONNECTING))
                     }
 
                     else -> {
                         pingManager.stopPinging()
                         isConnected = false
-                        sendBroadCast(
-                            AppConstants.Action.ACTION_MQTT_STATUS,
-                            AppConstants.IntentConstant.PARAM_STATUS,
-                            AppConstants.ConnectionStatus.STATUS_DISCONNECTED
-                        )
+                        postEvent(MqttEvent.StatusChanged(ConnectionStatus.DISCONNECTED))
                     }
                 }
             }
         } catch (e: Exception) {
-            sendBroadCast(
-                AppConstants.Action.ACTION_ERROR,
-                AppConstants.IntentConstant.PARAM_MESSAGE,
-                e.message
-            )
+            postEvent(MqttEvent.Error(e.message))
         }
     }
 
@@ -114,58 +112,24 @@ class AwsConnectionManagerAndroid(context: Context) : AwsConnection {
                         ?.toTypedArray()
 
                 if (splitTopic == null || splitTopic[1].isEmpty()) return@subscribeToTopic
-                if (splitTopic[0].equals(AppConstants.DefinedTopics.SYNC_ROOM_RES, ignoreCase = true)) {
-                    sendBroadCast(
-                        AppConstants.Action.ACTION_SYNC_ROOMS,
-                        AppConstants.IntentConstant.PARAM_DATA,
-                        splitTopic[1]
-                    )
-                } else if (splitTopic[0].equals(
-                        AppConstants.DefinedTopics.SYNC_DEVICE_RES,
-                        ignoreCase = true
-                    )
-                ) {
-                    sendBroadCast(
-                        AppConstants.Action.ACTION_SYNC_DEVICES,
-                        AppConstants.IntentConstant.PARAM_DATA,
-                        splitTopic[1]
-                    )
-                } else {
-                    splitTopic[0]?.let { RuntimeStorage.put(it, splitTopic[1]) }
-                    sendBroadCast(
-                        AppConstants.Action.ACTION_INTERCEPTED_MESSAGE,
-                        AppConstants.IntentConstant.PARAM_TOPIC,
-                        splitTopic[0]
-                    )
+                when (splitTopic[0]) {
+                    AppConstants.DefinedTopics.SYNC_ROOM_RES -> postEvent(MqttEvent.SyncRoomResponse(splitTopic[1]))
+                    AppConstants.DefinedTopics.SYNC_DEVICE_RES -> postEvent(MqttEvent.SyncDeviceResponse(splitTopic[1]))
+                    else -> {
+                        splitTopic[0].let { RuntimeStorage.put(it, splitTopic[1]) }
+                        postEvent(MqttEvent.InterceptedMessage(splitTopic[0], splitTopic[1]))
+                    }
                 }
             } catch (e: Exception) {
-                sendBroadCast(
-                    AppConstants.Action.ACTION_ERROR,
-                    AppConstants.IntentConstant.PARAM_MESSAGE,
-                    e.message
-                )
+                postEvent(MqttEvent.Error(e.message))
             }
         }
     }
 
-    private fun sendBroadCast(action: String, key: String, value: String?) {
-        val intent = Intent(action)
-        intent.putExtra(key, value)
-        LocalBroadcastManager.getInstance(appContext).sendBroadcast(intent)
-    }
-
-    //    private Intent getIntent(String action) {
-    //        Intent intent = new Intent(action);
-    //        return intent;
-    //    }
-    //
-    //    private void sendBroadCast(Intent intent) {
-    //        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
-    //    }
-    private fun sendBroadCast(action: String, key: String, value: Int) {
-        val intent = Intent(action)
-        intent.putExtra(key, value)
-        LocalBroadcastManager.getInstance(appContext).sendBroadcast(intent)
+    private fun postEvent(event: MqttEvent) {
+        CoroutineScope(Dispatchers.Main).launch {
+            _events.emit(event)
+        }
     }
 
     companion object {

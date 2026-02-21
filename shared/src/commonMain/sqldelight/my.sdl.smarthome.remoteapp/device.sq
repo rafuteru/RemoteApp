@@ -65,3 +65,7 @@ SELECT
 FROM device d
 INNER JOIN room r
 ON d.room_id = r.id;
+
+-- Get last inserted id (SQLite specific)
+getLastInsertedDeviceId:
+SELECT last_insert_rowid();

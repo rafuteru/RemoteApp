@@ -1,4 +1,4 @@
-package my.sdl.smarthome.remoteapp.data.db
+package my.sdl.smarthome.remoteapp.data.db.entity
 
 import my.sdl.smarthome.remoteapp.constants.SupportDeviceType
 import my.sdl.smarthome.remoteapp.domain.model.Device

@@ -27,4 +27,8 @@ WHERE id = ?;
 deleteRoom:
 DELETE FROM room WHERE id = ?;
 
+deleteAllDevices:
+DELETE FROM device;
 
+getRoomIdByKey:
+SELECT id FROM room WHERE room_key = ?;

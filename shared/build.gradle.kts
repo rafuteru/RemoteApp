@@ -3,13 +3,15 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
+    kotlin {
+        androidTarget {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
             }
         }
     }
@@ -34,13 +36,21 @@ kotlin {
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
             implementation(libs.koin.core)
+
+            // Add Compose runtime dependencies
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
         }
         androidMain.dependencies {
             implementation(libs.aws.mobile.client)
             implementation(libs.aws.iot)
-            implementation(libs.localbroadcastmanager)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.koin.android)
+            implementation(libs.coroutines.android)              // viewModelScope support
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.compose.navigation)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.ios.driver)
@@ -56,10 +66,6 @@ android {
     compileSdk = 34
     defaultConfig {
         minSdk = 24
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }
 
