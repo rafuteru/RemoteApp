@@ -1,0 +1,71 @@
+CREATE TABLE device (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    room_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    device_code INTEGER NOT NULL,
+    switch_id TEXT NOT NULL,
+    channel_count INTEGER NOT NULL DEFAULT 0,
+    qos INTEGER NOT NULL DEFAULT 0,
+    is_retain INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY(room_id) REFERENCES room(id) ON DELETE CASCADE
+);
+
+-- Get all main devices
+selectDevices:
+SELECT *
+FROM device;
+
+-- Insert device
+insertDevice:
+INSERT INTO device(
+    room_id,
+    name,
+    device_code,
+    switch_id,
+    channel_count,
+    qos,
+    is_retain)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+
+-- Delete all devices
+deleteAllDevices:
+DELETE FROM device;
+
+-- Delete
+deleteDevice:
+DELETE FROM device WHERE id = ?;
+
+-- Get main devices by room
+selectDevicesByRoom:
+SELECT * FROM device
+WHERE room_id = ?;
+
+-- Get single
+selectDeviceById:
+SELECT * FROM device
+WHERE id = ?;
+
+-- Get main devices by room and code
+selectDevicesByRoomAndCode:
+SELECT *
+FROM device
+WHERE room_id = ?
+AND device_code IN ?;
+
+-- ==============================
+-- Get topics (JOIN fixed)
+-- ==============================
+getTopics:
+SELECT
+    d.switch_id AS switchId,
+    d.device_code AS deviceType,
+    d.channel_count AS channelCount,
+    r.room_key AS keyRoomName
+FROM device d
+INNER JOIN room r
+ON d.room_id = r.id;
+
+-- Get last inserted id (SQLite specific)
+getLastInsertedDeviceId:
+SELECT last_insert_rowid();

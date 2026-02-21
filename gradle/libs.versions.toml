@@ -1,23 +1,46 @@
 [versions]
-agp = "8.4.0"
-kotlin = "1.9.20"
-compose = "1.5.4"
-compose-compiler = "1.5.4"
-compose-material3 = "1.1.2"
-androidx-activityCompose = "1.8.0"
+agp = "8.6.0"
+kotlin = "2.3.10"
+compose-multiplatform = "1.10.1"
+kotlinx-serialization = "1.6.0"
+kermit = "2.0.3"
+coroutines = "1.8.1"
+sqldelight = "2.0.1"
+sqldelight-ios = "2.1.0"
+koin = "3.5.3"
+aws-mobile-client = "2.16.13"
+aws-iot = "2.16.13"
+navigation = "2.7.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kermit = { group = "co.touchlab", name = "kermit", version.ref = "kermit" }
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+sqldelight-runtime = { group = "app.cash.sqldelight", name = "runtime", version.ref = "sqldelight" }
+sqldelight-coroutines = { group = "app.cash.sqldelight", name = "coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-android-driver = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
+sqldelight-ios-driver = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight-ios" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+aws-mobile-client = { group = "com.amazonaws", name = "aws-android-sdk-mobile-client", version.ref = "aws-mobile-client" }
+aws-iot = { group = "com.amazonaws", name = "aws-android-sdk-iot", version.ref = "aws-iot" }
+compose-foundation = { module = "androidx.compose.foundation:foundation", version = "1.5.3" }
+compose-ui = { module = "androidx.compose.ui:ui", version = "1.5.3" }
+compose-material3 = { module = "androidx.compose.material3:material3", version = "1.2.1" }
+compose-runtime = { module = "androidx.compose.runtime:runtime", version = "1.5.3" }
+compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+

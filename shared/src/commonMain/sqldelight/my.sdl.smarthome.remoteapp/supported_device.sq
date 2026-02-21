@@ -1,0 +1,21 @@
+CREATE TABLE supported_device (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    device_id INTEGER NOT NULL,
+    code INTEGER NOT NULL,
+    FOREIGN KEY(device_id) REFERENCES device(id) ON DELETE CASCADE
+);
+
+-- Insert
+insertSupportedDevice:
+INSERT INTO supported_device(device_id, code)
+VALUES (?, ?);
+
+-- Get by device
+selectSupportedByDevice:
+SELECT * FROM supported_device
+WHERE device_id = ?;
+
+-- Delete
+deleteSupportedByDevice:
+DELETE FROM supported_device
+WHERE device_id = ?;
